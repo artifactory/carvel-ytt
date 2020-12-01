@@ -22,6 +22,7 @@ vpc:
   nullable_string: "empty"
   #@schema/nullable
   nullable_int: 10
+  foo: ""
 `
 	dataValuesYAML := `#@data/values
 ---
@@ -39,6 +40,31 @@ vpc:
   name: vpc-203d912a
   nullable_string: null
   nullable_int: null
+  foo: ""
+`
+
+	testSchemaTemplates(t, schemaYAML, dataValuesYAML, templateYAML, expected)
+}
+
+func TestNullableAtTopLevelWithDataValueOmitted(t *testing.T) {
+	schemaYAML := `#@schema/match data_values=True
+---
+#@schema/nullable
+vpc:
+  #@schema/nullable
+  name: ""
+foo: "bar"
+`
+	dataValuesYAML := `#@data/values
+---
+`
+	templateYAML := `#@ load("@ytt:data", "data")
+---
+vpc: #@ data.values.vpc
+`
+
+	expected := `
+vpc: null
 `
 
 	testSchemaTemplates(t, schemaYAML, dataValuesYAML, templateYAML, expected)

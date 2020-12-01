@@ -62,6 +62,8 @@ func NewDocumentSchema(doc *Document) (*DocumentSchema, error) {
 func NewMapType(m *Map) (*MapType, error) {
 	mapType := &MapType{}
 
+	println("i am here!!!")
+
 	for _, mapItem := range m.Items {
 		mapItemType, err := NewMapItemType(mapItem)
 		if err != nil {
@@ -69,11 +71,13 @@ func NewMapType(m *Map) (*MapType, error) {
 		}
 		mapType.Items = append(mapType.Items, mapItemType)
 	}
-	annotations, err := schemaAnnotations(m)
-	if err != nil {
-		return nil, err
-	}
+	annotations := schemaAnnotations(m)
 	mapType.annotations = annotations
+	if _, nullable := annotations[AnnotationSchemaNullable]; nullable {
+		println("i am here")
+		mapType.Items = nil
+	}
+
 	return mapType, nil
 }
 
@@ -88,10 +92,8 @@ func NewMapItemType(item *MapItem) (*MapItemType, error) {
 		defaultValue = &Array{}
 	}
 
-	annotations, err := schemaAnnotations(item)
-	if err != nil {
-		return nil, err
-	}
+	annotations := schemaAnnotations(item)
+
 	if _, nullable := annotations[AnnotationSchemaNullable]; nullable {
 		defaultValue = nil
 	}
@@ -113,10 +115,7 @@ func NewArrayType(a *Array) (*ArrayType, error) {
 		return nil, err
 	}
 
-	annotations, err := schemaAnnotations(a)
-	if err != nil {
-		return nil, err
-	}
+	annotations := schemaAnnotations(a)
 
 	return &ArrayType{ItemsType: arrayItemType, annotations: annotations}, nil
 }
@@ -127,10 +126,8 @@ func NewArrayItemType(item *ArrayItem) (*ArrayItemType, error) {
 		return nil, err
 	}
 
-	annotations, err := schemaAnnotations(item)
-	if err != nil {
-		return nil, err
-	}
+	annotations := schemaAnnotations(item)
+
 	if _, found := annotations[AnnotationSchemaNullable]; found {
 		return nil, fmt.Errorf("Array items cannot be annotated with #@schema/nullable (%s). If this behaviour would be valuable, please submit an issue on https://github.com/vmware-tanzu/carvel-ytt", item.GetPosition().AsCompactString())
 	}
@@ -174,7 +171,7 @@ func (t MapItemType) IsNullable() bool {
 	return found
 }
 
-func schemaAnnotations(node Node) (annotations template.NodeAnnotations, err error) {
+func schemaAnnotations(node Node) (annotations template.NodeAnnotations) {
 	annotations = template.NodeAnnotations{}
 	anns := template.NewAnnotations(node)
 
