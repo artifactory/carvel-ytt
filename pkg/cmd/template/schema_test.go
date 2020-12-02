@@ -46,6 +46,31 @@ vpc:
 	testSchemaTemplates(t, schemaYAML, dataValuesYAML, templateYAML, expected)
 }
 
+func TestNullableAnnotationOnFirstElementOfMap(t *testing.T) {
+	schemaYAML := `#@schema/match data_values=True
+---
+app:
+  #@schema/nullable
+  db:
+    username: un
+    password: pw
+`
+	dataValuesYAML := `#@data/values
+---
+app:
+`
+	templateYAML := `#@ load("@ytt:data", "data")
+---
+db: #@ data.values.app.db
+`
+
+	expected := `
+db: null
+`
+
+	testSchemaTemplates(t, schemaYAML, dataValuesYAML, templateYAML, expected)
+}
+
 func TestNullableAtTopLevelWithDataValueOmitted(t *testing.T) {
 	schemaYAML := `#@schema/match data_values=True
 ---
