@@ -8,10 +8,12 @@ package yamlmeta
 import (
 	"bytes"
 	"fmt"
+	"github.com/k14s/ytt/pkg/structmeta"
 	"io"
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/k14s/ytt/pkg/filepos"
 	"github.com/k14s/ytt/pkg/yamlmeta/internal/yaml.v2"
@@ -199,6 +201,7 @@ func (p *Parser) assignMetas(val interface{}, comments []yaml.Comment, lineCorre
 
 	for _, comment := range comments {
 		meta := &Meta{
+			Name:     structmeta.AnnotationName(strings.Split(strings.ReplaceAll(comment.Data, "@", ""), " ")[0]), // TODO: we need to do this via templating
 			Data:     comment.Data,
 			Position: p.newPosition(comment.Line, lineCorrection),
 		}

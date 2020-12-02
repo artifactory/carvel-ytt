@@ -98,8 +98,17 @@ func (p DataValuesPreProcessing) templateFile(fileInLib *FileInLibrary) ([]*yaml
 		return nil, err
 	}
 	if _, ok := p.loader.schema.(*yamlmeta.AnySchema); !ok {
+		isValuesFiles := isValuesFile(resultDocSet)
+
 		var outerTypeCheck yamlmeta.TypeCheck
-		for _, doc := range resultDocSet.Items {
+		for i, doc := range resultDocSet.Items {
+			if i == 0 {
+				if isValuesFiles && doc.Value != nil {
+					return resultDocSet.Items, fmt.Errorf("Annotation @data/values need to be in a separate block")
+				} else if isValuesFiles {
+					continue
+				}
+			}
 			outerTypeCheck = p.loader.schema.AssignType(doc)
 			if len(outerTypeCheck.Violations) > 0 {
 				return resultDocSet.Items, fmt.Errorf("Typechecking violations found: [%v]", strings.Join(outerTypeCheck.Violations, ", "))
@@ -131,6 +140,18 @@ func (p DataValuesPreProcessing) templateFile(fileInLib *FileInLibrary) ([]*yaml
 	}
 
 	return valuesDocs, nil
+}
+
+func isValuesFile(resultDocSet *yamlmeta.DocumentSet) bool {
+	isValuesFiles := false
+	for _, meta := range resultDocSet.AllMetas {
+		//find @data/values and ignore if value == empty
+		if meta.Name == AnnotationDataValues {
+			isValuesFiles = true
+			break
+		}
+	}
+	return isValuesFiles
 }
 
 func (p DataValuesPreProcessing) overlay(valuesDoc, newValuesDoc *yamlmeta.Document) (*yamlmeta.Document, error) {

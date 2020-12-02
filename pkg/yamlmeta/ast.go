@@ -5,6 +5,7 @@ package yamlmeta
 
 import (
 	"github.com/k14s/ytt/pkg/filepos"
+	"github.com/k14s/ytt/pkg/structmeta"
 )
 
 type Node interface {
@@ -91,6 +92,7 @@ type ArrayItem struct {
 }
 
 type Meta struct {
+	Name     structmeta.AnnotationName
 	Data     string
 	Position *filepos.Position
 }

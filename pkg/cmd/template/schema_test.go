@@ -88,8 +88,7 @@ foo: "bar"
 vpc: #@ data.values.vpc
 `
 
-	expected := `
-vpc: null
+	expected := `vpc: null
 `
 
 	testSchemaTemplates(t, schemaYAML, dataValuesYAML, templateYAML, expected)
